@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://shubh996.github.io/tipx-us/sitemap.xml
