@@ -126,6 +126,16 @@ td.co{max-width:150px}
 @media(max-width:520px){.fchips{flex-wrap:wrap}.fchip{white-space:nowrap}.sbar .bigq{min-width:0}}
 @media(max-width:520px){.filters .fl{flex-direction:column;align-items:flex-start;gap:6px}.fchips{flex-wrap:nowrap}.fchip{padding:6px 8px;font-size:12.5px}}
 @media(max-width:520px){.fchip{padding:6px 6px;font-size:12px}.fchips{flex-wrap:wrap;max-width:100%}}
+
+/* Home: daily headline + day group header rows */
+h1.daily{font-size:40px;letter-spacing:-.8px}
+tr.dgrp td{background:#eef3fb;border-top:1px solid #cfdcf2;border-bottom:1px solid #cfdcf2;padding:9px 12px;font-size:13.5px;font-weight:700;color:#23406e;white-space:nowrap}
+tr.dgrp td:nth-child(3){border-left:0}
+tr.dgrp .dgl{position:sticky;left:12px;display:inline-block}
+tr.dgrp .dgn{font-weight:500;color:var(--muted)}
+tbody tr.dgrp:first-child td{border-top:0}
+@media (max-width:900px){h1.daily{font-size:32px}}
+@media (max-width:520px){h1.daily{font-size:28px}}
 </style></head><body>
 <div class="banner">Information only, not investment advice.</div>
 <header><div class="in"><a class="logo" href="#home">Tip<span>X</span> US</a><nav><a href="#home" data-s="home">All logged calls</a><a href="#companies" data-s="companies">Companies</a><a href="#sources" data-s="sources">Sources</a></nav></div></header>
@@ -188,14 +198,19 @@ const CAL=D.cal;const PX={};
 function px(sym){if(PX[sym])return PX[sym];const e=D.P[sym];if(!e)return null;const i0=e[0];let v=0;const out=[];for(let k=1;k<e.length;k++){v=k===1?e[1]:v+e[k];out.push([CAL[i0+k-1],v/100])}return PX[sym]=out}
 // ---- generic sortable, paginated table ----
 // cols: {h,cls,v(row)->sort value or null, r(row)->html}
-function table(el,{cols,rows,size=0,sort=null,dir='desc',rowHref,empty='No matching tips.'}){
+function table(el,{cols,rows,size=0,sort=null,dir='desc',rowHref,empty='No matching tips.',group=null}){
  const st={sort,dir,page:0,rows};
  function sorted(){if(st.sort==null)return st.rows;const c=cols[st.sort],m=st.dir==='asc'?1:-1;
   return st.rows.map((r,i)=>[c.v(r),i,r]).sort((a,b)=>{const x=a[0],y=b[0];if(x==null&&y==null)return a[1]-b[1];if(x==null)return 1;if(y==null)return -1;return(x<y?-m:x>y?m:0)||a[1]-b[1]}).map(z=>z[2])}
  function draw(){const all=sorted();const pages=size?Math.max(1,Math.ceil(all.length/size)):1;st.page=Math.min(st.page,pages-1);
   const vis=size?all.slice(st.page*size,st.page*size+size):all;
+  // Day group headers: only when sorted by the group column (or the default newest-first order).
+  const grp=group&&(st.sort==null||st.sort===group.col);let gcnt=null;
+  if(grp){gcnt=new Map();all.forEach(r=>{const k=group.key(r);gcnt.set(k,(gcnt.get(k)||0)+1)})}
   let h='<div class="tw"><table class="sortable"><thead><tr>'+cols.map((c,i)=>`<th class="${c.cls||''}${c.v?' srt':''}" data-i="${i}"${st.sort===i?` data-dir="${st.dir}"`:''}${c.t?` title="${c.t}"`:''}>${c.h}</th>`).join('')+'</tr></thead><tbody>';
-  h+=vis.map(r=>`<tr class="cl" data-h="${rowHref(r)}">`+cols.map(c=>`<td class="${c.cls||''}">${c.r(r)}</td>`).join('')+'</tr>').join('');
+  let pk=null;const prevK=grp&&st.page>0&&vis.length?group.key(all[st.page*size-1]):null;
+  h+=vis.map(r=>{let g='';if(grp){const k=group.key(r);if(k!==pk){g=`<tr class="dgrp"><td colspan="${cols.length}"><span class="dgl">${group.label(k,gcnt.get(k),k===prevK)}</span></td></tr>`;pk=k}}
+   return g+`<tr class="cl" data-h="${rowHref(r)}">`+cols.map(c=>`<td class="${c.cls||''}">${c.r(r)}</td>`).join('')+'</tr>'}).join('');
   h+='</tbody></table></div>';if(!all.length)h+=`<p class="why">${empty}</p>`;
   if(size&&all.length>size){const a=st.page*size+1,b=Math.min(all.length,a+size-1);
    const nums=[];for(let p=0;p<pages;p++){if(p<2||p>pages-3||Math.abs(p-st.page)<=1)nums.push(p);else if(nums[nums.length-1]!=='…')nums.push('…')}
@@ -227,20 +242,26 @@ const C={
 const tipCols=(o={})=>[C.pub,...(o.src===false?[]:[C.src,C.typ]),...(o.co===false?[]:[C.tk]),C.call,C.entry,C.r1,C.r3,C.r6,C.r12,C.rt,C.xt,C.o,C.go];
 const TNOTE='<p class="why" style="max-width:none">1M / 3M / 6M / 12M / To date = the stock\'s total return (incl. dividends) from the entry close. "vs S&amp;P" = the difference against SPY total return over the same days, reversed for sell tips. Click a column header to sort all rows; pending values always sort last. Click a row for the tip page; ↗ opens the original source.</p>';
 const NOTICE=document.getElementById('notice').innerHTML;
+// Day labels for the home list: Today / Yesterday against the visitor's Europe/London calendar date at view time, else e.g. "Thu 15 Oct".
+const WD=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+function londonToday(){try{const p={};new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/London',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).forEach(x=>p[x.type]=x.value);return `${p.year}-${p.month}-${p.day}`}catch(e){const d=new Date();return d.toISOString().slice(0,10)}}
+function dayLabel(k,now){const diff=dayn(now)-dayn(k);if(diff===0)return'Today';if(diff===1)return'Yesterday';
+ const[y,m,d]=k.split('-');const wd=WD[new Date(Date.UTC(+y,+m-1,+d)).getUTCDay()];return `${wd} ${+d} ${MON[+m-1]}${y!==now.slice(0,4)?' '+y:''}`}
+const dayGroup=col=>{const now=londonToday();return{col,key:r=>r.pub.slice(0,10),label:(k,n,cont)=>`${dayLabel(k,now)} <span class="dgn">· ${n.toLocaleString()} tip${n===1?'':'s'}${cont?' (continued)':''}</span>`}};
 const byPubDesc=(a,b)=>a.pub<b.pub?1:a.pub>b.pub?-1:0;
 const gc={a:0,p:0,x:0};TIPS.forEach(t=>gc[t.src.g]++);
 // ---- pages ----
 const app=document.getElementById('app');
 function pageHome(q){
  const ALLT=['a','p','x'];const F={text:'',src:'',types:new Set(ALLT.filter(g=>!(q.get('off')||'').split(',').includes(g))),call:q.get('call')||'',days:+(q.get('days')||0)};
- app.innerHTML=`<h1>All logged calls</h1><p class="sub">${TIPS.length.toLocaleString()} tips made in public on ${Object.keys(BYTK).length} US-listed companies. Each links to its original source.</p><div class="card">
+ app.innerHTML=`<h1 class="daily">We update the list daily</h1><p class="sub">${TIPS.length.toLocaleString()} tips made in public on ${Object.keys(BYTK).length} US-listed companies. Each links to its original source.</p><div class="card">
  <div class="sbar"><input id="aq" class="bigq" type="search" placeholder="Search by company, ticker or source, e.g. NVDA, Apple, JPMorgan" autocomplete="off"><button type="button" id="ftog" class="fbtn" aria-expanded="false" aria-controls="fpanel"><svg class="ficon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M3 5h18l-7 8.5V19l-4 2v-7.5L3 5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><span>Filters</span><span id="fdot" class="fdot" hidden></span></button></div>
  <div id="fpanel" class="fpanel" hidden><div class="filters"><span class="fl">Type ${typeSwitches('ftypes',F.types)}</span>
  <label class="fl">Source <input id="fsrc" list="srclist" placeholder="All sources" autocomplete="off"><datalist id="srclist"></datalist></label>
  <span class="fl">Call ${chipset('fcall',[['','All'],['buy','Buy'],['sell','Sell']],F.call)}</span><span class="fl">Published ${chipset('fdays',[['0','All time'],['30','Last 30 days'],['90','Last 90 days'],['180','Last 180 days']],String(F.days))}</span></div></div>
  <div class="fbar"><span id="acount" class="fcount"></span><button type="button" id="fclear" class="btnl">Clear filters</button></div><div id="tbl"></div>${TNOTE}</div>${NOTICE}`;
  const $=s=>app.querySelector(s);
- const rows=[...TIPS].sort(byPubDesc);const t=table($('#tbl'),{cols:tipCols(),rows,size:50,rowHref:r=>'call/'+r.id});
+ const rows=[...TIPS].sort(byPubDesc);const t=table($('#tbl'),{cols:tipCols(),rows,size:50,rowHref:r=>'call/'+r.id,group:dayGroup(0)});
  const T0=dayn(TODAY);const SRCBY={};SRC.forEach(s=>SRCBY[s.short.toLowerCase()]=s);
  const inp=$('#aq'),fs=$('#fsrc');
  const fillSrc=()=>{$('#srclist').innerHTML=SRC.filter(s=>F.types.has(s.g)).sort((x,y)=>x.short.localeCompare(y.short)).map(s=>`<option value="${esc(s.short)}">`).join('');
