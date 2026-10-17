@@ -136,6 +136,42 @@ tr.dgrp .dgn{font-weight:500;color:var(--muted)}
 tbody tr.dgrp:first-child td{border-top:0}
 @media (max-width:900px){h1.daily{font-size:32px}}
 @media (max-width:520px){h1.daily{font-size:28px}}
+/* ---- Home v2 mockup ---- */
+.h2jump{margin:-8px 0 var(--s5)}
+.h2hd{display:flex;justify-content:space-between;align-items:baseline;gap:12px}.h2hd h2{margin-bottom:var(--s3)}
+.h2more{font-size:14px;font-weight:600;color:var(--brand);text-decoration:none;white-space:nowrap}.h2more:hover{text-decoration:underline}
+.h2lead{margin:-8px 0 var(--s3)}
+.h2h3{font-size:12px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin:var(--s4) 0 var(--s1);font-weight:700}
+.h2r{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);min-width:0}
+.h2r:first-of-type{border-top:0}
+.h2m{min-width:0;flex:1}
+.h2t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.h2tk{font-weight:700;color:var(--ink);text-decoration:none}.h2tk:hover{color:var(--brand);text-decoration:underline}
+.h2co{color:var(--muted);font-size:14px}
+.h2s{font-size:13px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.h2s a.src{font-size:13px;color:var(--muted)}
+.h2v{display:flex;align-items:center;gap:10px;flex:none}
+.h2x{font-size:14.5px;font-weight:700;font-variant-numeric:tabular-nums;min-width:68px;text-align:right}
+.h2o{color:var(--faint);text-decoration:none;width:24px;height:24px;line-height:24px;text-align:center;border-radius:6px}.h2o:hover{background:#eef3fb;color:var(--brand)}
+.h2sug{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:4px}.h2sug[hidden]{display:none}.h2sl{font-size:13px;color:var(--muted);margin-right:2px}
+.h2chip{font:inherit;font-size:13px;cursor:pointer;font-weight:600;color:#23406e}.h2chip:hover{background:#eef3fb;border-color:#9fb3d1}.h2chip small{font-weight:400}
+.h2check .bigq{margin-top:0}
+.h2sum{font-size:15px;margin:0 0 6px;padding:10px 12px;background:#f7f9fc;border:1px solid var(--line);border-radius:10px}
+.h2grid,.h2grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 var(--s5)}
+.h2grid2{gap:0 var(--s6)}
+.h2b{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto;gap:12px;align-items:center;padding:8px 0;text-decoration:none;color:var(--ink);border-top:1px solid var(--line)}
+.h2b:hover .h2bn{color:var(--brand);text-decoration:underline}
+.h2bn{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:15px}
+.h2bar{height:8px;background:#eef1f5;border-radius:99px;overflow:hidden}.h2bar i{display:block;height:100%;background:#0b3d91;border-radius:99px}
+.h2bp{white-space:nowrap;font-variant-numeric:tabular-nums;font-size:14.5px;text-align:right;min-width:92px}
+.h2kp{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3)}.h2kp .kpi{border:1px solid var(--line);background:#fff}
+.h2foot{margin:var(--s3) 0 0}
+.h2all{font-size:24px;margin:var(--s6) 0 var(--s3);scroll-margin-top:12px}
+@media (max-width:900px){.h2grid{grid-template-columns:1fr}}
+@media (max-width:700px){.h2grid2{grid-template-columns:1fr}}
+@media (max-width:520px){.h2x{min-width:58px;font-size:14px}.h2v{gap:6px}.h2co{font-size:13px}.h2b{grid-template-columns:minmax(0,1fr) 64px auto;gap:8px}.h2bp{min-width:0}.h2bp small{display:block;font-size:11.5px;line-height:1.2}.h2bn{font-size:14px}.h2kp .kpi .v{font-size:21px}.h2r .pill{font-size:10.5px;padding:2px 7px}}
+.h2grid>*,.h2grid2>*{min-width:0}
+.h2top{align-items:start}
+@media (max-width:520px){.h2s{white-space:normal}}
 </style></head><body>
 <div class="banner">Information only, not investment advice.</div>
 <header><div class="in"><a class="logo" href="#home">Tip<span>X</span> US</a><nav><a href="#home" data-s="home">All logged calls</a><a href="#companies" data-s="companies">Companies</a><a href="#sources" data-s="sources">Sources</a></nav></div></header>
@@ -252,9 +288,64 @@ const byPubDesc=(a,b)=>a.pub<b.pub?1:a.pub>b.pub?-1:0;
 const gc={a:0,p:0,x:0};TIPS.forEach(t=>gc[t.src.g]++);
 // ---- pages ----
 const app=document.getElementById('app');
+// ---- Home v2 (mockup): engaging sections above the full list ----
+const H2MIN=10; // minimum logged calls for the "Who's been right?" table
+const h2ahead=rows=>rows.filter(r=>(r.xt||0)>0).length;
+const h2pct=(a,n)=>Math.round(100*a/n)+'%';
+const h2ext=r=>`<a class="h2o" href="${esc(r.url)}" target="_blank" rel="noopener" title="View original" aria-label="View original source">↗</a>`;
+const h2row=(r,o={})=>`<div class="h2r"><div class="h2m"><div class="h2t"><a href="#call/${r.id}" class="h2tk">${esc(r.tk)}</a> <span class="h2co">${esc(r.co)}</span></div><div class="h2s">${o.nosrc?'':srcLink(r.src)+' · '}${fd(r.pub)}</div></div><div class="h2v">${pill(r.buy)}<span class="h2x">${fmt(r.xt,1)}</span>${h2ext(r)}</div></div>`;
+function h2top(){
+ const T0=dayn(TODAY);
+ const newest=[...TIPS].sort(byPubDesc).slice(0,5);
+ // Who's been right: share of calls ahead of SPY to date, sources with H2MIN+ calls
+ const board=[...BYSRC.entries()].filter(([s,r])=>r.length>=H2MIN).map(([s,r])=>({s,n:r.length,a:h2ahead(r)})).map(x=>({...x,p:x.a/x.n}));
+ const top=[...board].sort((x,y)=>y.p-x.p||y.n-x.n).slice(0,5),bot=[...board].sort((x,y)=>x.p-y.p||y.n-x.n).slice(0,5);
+ const brow=x=>`<a class="h2b" href="#src/${x.s.slug}"><span class="h2bn">${esc(x.s.short)} ${typ(x.s)}</span><span class="h2bar"><i style="width:${Math.round(100*x.p)}%"></i></span><span class="h2bp"><b>${h2pct(x.a,x.n)}</b> <small>${x.a} of ${x.n}</small></span></a>`;
+ // Cramer check
+ const cs=SRC.find(s=>s.short==='Jim Cramer');const cr=cs?BYSRC.get(cs):[];const cb=cr.filter(r=>r.buy),cse=cr.filter(r=>!r.buy);const crs=[...cr].sort(byPubDesc);const cl=crs[0];const clast=cl?crs.filter(r=>r.pub.slice(0,10)===cl.pub.slice(0,10)):[];
+ // Furthest ahead / behind among calls published in the last 30 days
+ const m=TIPS.filter(r=>T0-dayn(r.pub.slice(0,10))<30&&r.xt!=null).sort((a,b)=>b.xt-a.xt);
+ const hi=m.slice(0,3),lo=m.slice(-3).reverse();
+ // Suggestion chips: most-tipped tickers in the last 30 days
+ const cnt={};TIPS.forEach(r=>{if(T0-dayn(r.pub.slice(0,10))<30)cnt[r.tk]=(cnt[r.tk]||0)+1});
+ const sug=Object.entries(cnt).sort((a,b)=>b[1]-a[1]||(a[0]<b[0]?-1:1)).slice(0,6);
+ return `<h1 class="daily">We update the list daily</h1><p class="sub">${TIPS.length.toLocaleString()} tips made in public on ${Object.keys(BYTK).length} US-listed companies, from ${SRC.length} sources. Each is checked against the S&amp;P 500 from the day it was made, and links to its original source. Latest prices: ${fd(TODAY)}.</p>
+ <p class="h2jump"><a class="btnl" href="#all" data-jump="1">See all ${TIPS.length.toLocaleString()} calls ↓</a></p>
+ <div class="h2grid h2top"><div class="card h2check"><h2>Check a stock</h2><input id="h2q" class="bigq" type="search" placeholder="Ticker or company, e.g. NVDA" autocomplete="off" aria-label="Check a stock">
+ <div id="h2res"></div><div id="h2sug" class="h2sug"><span class="h2sl">Most logged in the last 30 days:</span>${sug.map(([t,n])=>`<button type="button" class="chip h2chip" data-t="${esc(t)}">${esc(t)} <small>${n}</small></button>`).join('')}</div></div>
+ <div class="card"><div class="h2hd"><h2>Newest calls</h2><a href="#all" data-jump="1" class="h2more">See all calls ›</a></div>${newest.map(r=>h2row(r)).join('')}<p class="why">Figure after BUY/SELL = to date vs S&amp;P 500 (SPY total return), reversed for sell calls. New calls have had little time to move.</p></div></div>
+ <div class="h2grid">
+ <div class="card"><h2>Who's been right?</h2><p class="why h2lead">Share of each source's logged calls that are ahead of the S&amp;P 500 to date. Sources with ${H2MIN} or more calls (${board.length} sources).</p>
+ <h3 class="h2h3">Most often ahead</h3>${top.map(brow).join('')}<h3 class="h2h3">Least often ahead</h3>${bot.map(brow).join('')}
+ <p class="h2foot"><a href="#sources" class="h2more">Full Sources table ›</a></p></div>
+ ${cs?`<div class="card h2cr"><h2>Cramer check</h2><p class="why h2lead">Jim Cramer's calls logged from CNBC Mad Money Lightning Round recaps, to date vs the S&amp;P 500.</p>
+ <div class="h2kp"><div class="kpi"><div class="l">Buy calls ahead</div><div class="v">${h2ahead(cb)} of ${cb.length}</div><div class="ks">${h2pct(h2ahead(cb),cb.length)} of buy calls</div></div><div class="kpi"><div class="l">Sell calls ahead</div><div class="v">${h2ahead(cse)} of ${cse.length}</div><div class="ks">${h2pct(h2ahead(cse),cse.length)} of sell calls</div></div></div>
+ ${cl?`<h3 class="h2h3">Latest logged call${clast.length>1?'s':''} (${fd(cl.pub)})</h3>${clast.map(r=>h2row(r,{nosrc:1})).join('')}`:''}<p class="h2foot"><a href="#src/${cs.slug}" class="h2more">All ${cr.length} Jim Cramer calls ›</a></p></div>`:''}
+ </div>
+ <div class="card"><h2>Biggest moves this month</h2><p class="why h2lead">Calls made in the last 30 days (to ${fd(TODAY)}, ${m.length} calls), by to-date result against the S&amp;P 500.</p>
+ <div class="h2grid2"><div><h3 class="h2h3">Furthest ahead</h3>${hi.map(r=>h2row(r)).join('')}</div><div><h3 class="h2h3">Furthest behind</h3>${lo.map(r=>h2row(r)).join('')}</div></div></div>
+ <h2 class="h2all" id="allcalls">All logged calls</h2>`;
+}
+function h2check(v){const out=document.getElementById('h2res'),sg=document.getElementById('h2sug');const s=v.trim().toLowerCase();
+ if(!s){out.innerHTML='';sg.hidden=false;return}sg.hidden=true;
+ const sc=tk=>{const t=tk.toLowerCase(),c=(D.C[tk]||'').toLowerCase();return t===s?0:t.startsWith(s)?1:c.startsWith(s)?2:c.includes(s)?3:9};
+ const ms=Object.keys(BYTK).map(tk=>[sc(tk),tk]).filter(x=>x[0]<9).sort((a,b)=>a[0]-b[0]||BYTK[b[1]].length-BYTK[a[1]].length||(a[1]<b[1]?-1:1));
+ if(!ms.length){out.innerHTML=`<p class="why">No logged calls match “${esc(v)}”. Only stocks that were tipped in public appear here.</p>`;return}
+ const tk=ms[0][1],rows=[...BYTK[tk]].sort(byPubDesc),nb=rows.filter(r=>r.buy).length,a=h2ahead(rows);
+ out.innerHTML=`<div class="h2sum"><b>${esc(tk)}</b> ${esc(D.C[tk]||'')}: ${rows.length} logged call${rows.length===1?'':'s'} (${nb} buy, ${rows.length-nb} sell). ${a} of ${rows.length} ahead of the S&amp;P 500 to date.</div>
+ ${rows.slice(0,6).map(r=>h2row(r)).join('')}<p class="h2foot"><a href="#company/${slug(tk)}" class="h2more">${rows.length>6?`See all ${rows.length} calls on ${esc(tk)}`:`${esc(tk)} page`} ›</a></p>
+ ${ms.length>1?`<div class="h2sug"><span class="h2sl">Also matching:</span>${ms.slice(1,7).map(x=>`<button type="button" class="chip h2chip" data-t="${esc(x[1])}">${esc(x[1])}</button>`).join('')}</div>`:''}`;
+ out.querySelectorAll('.h2chip').forEach(h2chipBind)}
+function h2chipBind(b){b.onclick=()=>{const i=document.getElementById('h2q');i.value=b.dataset.t;h2check(i.value)}}
+function h2bind(){
+ const i=document.getElementById('h2q');if(!i)return;i.oninput=()=>h2check(i.value);
+ document.querySelectorAll('#h2sug .h2chip').forEach(h2chipBind);
+ document.querySelectorAll('a[data-jump]').forEach(a=>a.onclick=e=>{e.preventDefault();history.replaceState(null,'','#all');document.getElementById('allcalls').scrollIntoView({behavior:'smooth'})});
+}
+
 function pageHome(q){
  const ALLT=['a','p','x'];const F={text:'',src:'',types:new Set(ALLT.filter(g=>!(q.get('off')||'').split(',').includes(g))),call:q.get('call')||'',days:+(q.get('days')||0)};
- app.innerHTML=`<h1 class="daily">We update the list daily</h1><p class="sub">${TIPS.length.toLocaleString()} tips made in public on ${Object.keys(BYTK).length} US-listed companies. Each links to its original source.</p><div class="card">
+ app.innerHTML=`${h2top()}<div class="card" id="listcard">
  <div class="sbar"><input id="aq" class="bigq" type="search" placeholder="Search by company, ticker or source, e.g. NVDA, Apple, JPMorgan" autocomplete="off"><button type="button" id="ftog" class="fbtn" aria-expanded="false" aria-controls="fpanel"><svg class="ficon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M3 5h18l-7 8.5V19l-4 2v-7.5L3 5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><span>Filters</span><span id="fdot" class="fdot" hidden></span></button></div>
  <div id="fpanel" class="fpanel" hidden><div class="filters"><span class="fl">Type ${typeSwitches('ftypes',F.types)}</span>
  <label class="fl">Source <input id="fsrc" list="srclist" placeholder="All sources" autocomplete="off"><datalist id="srclist"></datalist></label>
@@ -280,7 +371,7 @@ function pageHome(q){
  $('#fclear').onclick=()=>{F.text=F.src=F.call='';F.days=0;ALLT.forEach(g=>F.types.add(g));inp.value=fs.value='';setSwitches(app,'ftypes',F.types);[['fcall',''],['fdays','0']].forEach(([id,v])=>app.querySelectorAll('#'+id+' .fchip').forEach(x=>x.classList.toggle('on',x.dataset.v===v)));fillSrc();apply()};
  if(q.get('src')){F.src=q.get('src');fs.value=F.src}if(q.get('q')){F.text=q.get('q');inp.value=F.text}
  if(q.get('open'))tog.click();
- fillSrc();apply();if(q.get('sort'))t.sortBy(q.get('sort'),q.get('dir'));
+ fillSrc();apply();if(q.get('sort'))t.sortBy(q.get('sort'),q.get('dir'));h2bind();
 }
 function companyRows(){return Object.entries(BYTK).map(([tk,rows])=>{const nb=rows.filter(r=>r.buy).length;const lt=rows.reduce((a,b)=>a.pub>b.pub?a:b);
  return{tk,co:D.C[tk]||tk,rows,n:rows.length,nb,ns:rows.length-nb,nsrc:new Set(rows.map(r=>r.src)).size,lt,key:(tk+' '+(D.C[tk]||'')+' '+[...new Set(rows.map(r=>r.src.short))].join(' ')).toLowerCase()}})}
@@ -387,7 +478,7 @@ function pageBoard(q){
 function pageMethod(){app.innerHTML=document.getElementById('method').innerHTML+NOTICE}
 function route(){
  let full=(location.hash||'#home').slice(1);let[h,qs]=full.split('?');const q=new URLSearchParams(qs||'');
- if(h==='all'||h==='email'||h==='')h='home';if(h==='company')h='company/NVDA';if(h==='source')h='src/Jim-Cramer-Mad-Money-CNBC';
+ window.__toAll=h==='all';if(h==='all'||h==='email'||h==='')h='home';if(h==='company')h='company/NVDA';if(h==='source')h='src/Jim-Cramer-Mad-Money-CNBC';
  const[a,b]=h.split('/');let top='home';
  if(a==='companies'){pageCompanies();top='companies'}
  else if(a==='company'&&TKSLUG[b]){pageCompany(TKSLUG[b]);top='companies'}
@@ -396,7 +487,7 @@ function route(){
  else if(a==='sources'||a==='scoreboard'||a==='scorecard'){pageBoard(q);top='sources'}
  else if(a==='method'){pageMethod();top=''}
  else pageHome(q);
- document.querySelectorAll('nav a').forEach(x=>x.classList.toggle('on',x.dataset.s===top));const h1=app.querySelector('h1');document.title=(a==='home'||!h1||(a!=='companies'&&a!=='company'&&a!=='call'&&a!=='src'&&a!=='sources'&&a!=='scoreboard'&&a!=='scorecard'&&a!=='method'))?'TipX US: public stock tips in one place':h1.textContent.trim().replace(/\s+/g,' ')+' · TipX US';window.scrollTo(0,0);
+ document.querySelectorAll('nav a').forEach(x=>x.classList.toggle('on',x.dataset.s===top));const h1=app.querySelector('h1');document.title=(a==='home'||!h1||(a!=='companies'&&a!=='company'&&a!=='call'&&a!=='src'&&a!=='sources'&&a!=='scoreboard'&&a!=='scorecard'&&a!=='method'))?'TipX US: public stock tips in one place':h1.textContent.trim().replace(/\s+/g,' ')+' · TipX US';window.scrollTo(0,0);if(window.__toAll){const el=document.getElementById('allcalls');if(el)el.scrollIntoView()}
 }
 // GoatCounter: onload counting is off (no_onload), so every route render, including the first, is counted here once with its hash path.
 function gcCount(tries){try{const g=window.goatcounter;if(g&&typeof g.count==='function'){g.count({path:location.pathname+location.hash,title:document.title});return}}catch(e){return}
